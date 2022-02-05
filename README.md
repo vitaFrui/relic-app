@@ -17,8 +17,6 @@ A simple application capable of parsing files and text input for the top one-hun
 * [Future Goals](#future-goals)
 * [Known Bugs](#known-bugs)
 
-<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
-
 
 ## Setup and Installation
 Follow these steps to set up the application development environment, package it into a distributable jar, and execute it.
