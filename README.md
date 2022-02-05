@@ -42,9 +42,11 @@ In lieu of the other setup steps below, simply navigate to the [Relic App Releas
 If you opt to, though, you can retrieve the source code and package the project yourself.
 
 #### Clone
-Clone the project from the Github repository.
+Clone the project from the Github repository and navigate into the project directory.
 ```
 $ git clone https://github.com/vitaFrui/relic-app.git
+...
+$ cd relic-app
 ```
 
 #### Build
@@ -62,20 +64,20 @@ Once the application is packaged into a distributable jar you can execute it aga
 ### Supplying Input via Program Arguments
 File paths can be provided to the application via program arguments:
 ```
-$ java -jar relic-app-1.0.0.jar ../texts/moby-dick.txt
+$ java -jar target/relic-app-1.0.0.jar ../texts/moby-dick.txt
 ```
 Multiple files can also be provided:
 ```
-$ java -jar relic-app-1.0.0.jar ../texts/moby-dick.txt ../texts/brothers-karamazov.txt
+$ java -jar target/relic-app-1.0.0.jar ../texts/moby-dick.txt ../texts/brothers-karamazov.txt
 ```
 Running the program with multiple files in the program arguments will process them ___in aggregate___. Any word sequences will be recorded and counted across _all_ processed files.
 
 For example, if we run the above multi-file execution and `moby-dick.txt` has the phrase "one of the" occur thirty times while `brothers-karamazov.txt` has it occur twenty-six times - then the final result will have "one of the" recorded with fifty-six occurences. If this is enough to make one of the top one-hundred word sequences it will be reported as such.
 
 #### Disable Aggregate Processing
-A system property can be set to disable aggregate processing. By supplying `-DresetEach` as a JVM argument the application will process and report each argument separately - as if the application had been executed two separate times with each file provided as a single argument.
+A system property can be set to disable aggregate processing. By supplying `-DresetEach` as a JVM argument the application will process and report each program argument separately - as if the application had been executed two separate times with each file provided as a single argument.
 ```
-$ java -DresetEach -jar relic-app-1.0.0.jar ../texts/moby-dick.txt ../texts/brothers-karamazov.txt
+$ java -DresetEach -jar target/relic-app-1.0.0.jar ../texts/moby-dick.txt ../texts/brothers-karamazov.txt
 ```
 
 ### Supplying Input via StdIn
