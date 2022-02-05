@@ -16,24 +16,23 @@ public class App {
     private static final String RESET_EACH_INPUT = "resetEach";
 
     /**
-     * Executes the program. Accepts a variety of parameters to perform different operations. The following are valid
-     * parameters:
+     * Executes the program, processing provided input. The following are valid parameters:
      *
      * <ul>
-     *     <li>A singular file (to process)</li>
-     *     <li>A space delimited list of file names (to process)</li>
+     *     <li>A singular file name</li>
+     *     <li>OR a space delimited list of file names</li>
+     *     <li>OR console input via StdIn</li>
      * </ul>
      *
      * @param args User provided arguments
      */
     public static void main(final String[] args) {
         final boolean isResetEachInput = null != System.getProperty(RESET_EACH_INPUT);
-
         final TextReader textReader = new TextReader();
 
-        System.out.println("Parsing the following file: " + Arrays.toString(args));
-
         if (null != args && args.length > 0) {
+            System.out.println("Parsing the following file(s): " + Arrays.toString(args));
+
             for (final String arg : args) {
                 textReader.processInput(arg);
 
@@ -44,6 +43,7 @@ public class App {
             }
 
             if (!isResetEachInput) {
+                // if not reporting and resetting after each input make sure we do it after all file inputs are processed
                 System.out.println(textReader.getMostCommonWords());
             }
         } else {

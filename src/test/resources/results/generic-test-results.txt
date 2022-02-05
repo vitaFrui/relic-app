@@ -1,0 +1,17 @@
+
+Here are the most common word sequences for StdIn
+
+Sequence                            | Count
+-------------------------------------------
+was fine-tough the                  | 3
+the beef was                        | 3
+beef was fine-tough                 | 3
+couldn't be helped                  | 2
+that couldn't be                    | 2
+the bread-but that                  | 2
+bread-but that couldn't             | 2
+fine-tough the beef                 | 2
+helped the bread-but                | 1
+be helped the                       | 1
+fine-tough the bread-but            | 1
+===========================================

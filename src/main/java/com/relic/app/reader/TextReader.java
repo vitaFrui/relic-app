@@ -4,6 +4,7 @@ package com.relic.app.reader;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -15,9 +16,14 @@ import java.util.regex.Pattern;
  * considered in aggregate unless {@link #reset()} is called.
  */
 public class TextReader {
-    private static final Pattern WORD_PATTERN = Pattern.compile("([\\w]+[’']?[\\w]*)");
-    private static final char NEWLINE_CHAR = '\n';
+    private static final Pattern WORD_PATTERN = Pattern.compile("([\\w]+[-']?[\\w]*)");
+    private static final Pattern UNICODE_DASH_PATTERN = Pattern.compile("\\p{Pd}");
+    private static final Pattern UNICODE_SINGLE_QUOTE_PATTERN = Pattern.compile("’");
     private static final Integer DEFAULT_RESULT_LIMIT = 100;
+    private static final Integer SEQUENCE_OUTPUT_PADDING = 35;
+    private static final String OUTPUT_SEPARATOR = "===========================================";
+    private static final String HEADER_SEPARATOR = "-------------------------------------------";
+    private static final String NEWLINE_SEPARATOR = System.getProperty("line.separator");
 
     private final Map<String, Integer> wordSequenceMap = new HashMap<>();
     private final List<String> sources = new ArrayList<>();
@@ -46,10 +52,10 @@ public class TextReader {
      * Processes StdIn for the most common word sequences.
      */
     public void processInput() {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8))) {
             processInput("StdIn", reader);
         } catch (IOException e) {
-            System.out.println("Unable to read input from StdIn: " + e);
+            System.err.println("Unable to read input from StdIn: " + e);
         }
     }
 
@@ -59,10 +65,10 @@ public class TextReader {
      * @param file Name of file to process
      */
     public void processInput(final String file) {
-        try (final BufferedReader reader = Files.newBufferedReader(Paths.get(file))) {
+        try (final BufferedReader reader = Files.newBufferedReader(Paths.get(file), StandardCharsets.UTF_8)) {
             processInput(file, reader);
         } catch (final IOException e) {
-            System.out.println("There was an issue processing the file: " + file + "... " + e);
+            System.err.println("There was an issue processing the file: " + file + "... " + e);
         }
     }
 
@@ -94,10 +100,14 @@ public class TextReader {
             return;
         }
 
-        final Matcher matcher = WORD_PATTERN.matcher(line);
+        // prepare the line and capture its words
+        final Matcher matcher = WORD_PATTERN.matcher(prepareLine(line));
 
+        // as long as we have a word, process it
         while (matcher.find()) {
-            sequence.addToSequence(matcher.group().toLowerCase(Locale.ROOT).replace('’', '\''));
+            sequence.addToSequence(matcher.group());
+
+            // if we have a valid sequence join it into a singular space delimited string and add it to our sequence map
             sequence.getSequence().ifPresent(strings -> {
                 final StringJoiner joiner = new StringJoiner(" ");
                 strings.forEach(joiner::add);
@@ -107,34 +117,66 @@ public class TextReader {
     }
 
     /**
-     * Returns the String formatted listing of the 100 most common word sequences of the size specified.
+     * Returns the String formatted listing of the most common word sequences of the size specified up the result count
+     * requested.
      *
      * @return formatted String containing top 100 most common word sequences
      */
     public String getMostCommonWords() {
-        final StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder().append(NEWLINE_SEPARATOR);
 
         if (sources.isEmpty()) {
-            sb.append("No sources were provided, and thus no output is available! =^-^=");
+            sb.append("No sources were provided, and thus no output is available! =^-^=").append(NEWLINE_SEPARATOR);
         } else {
             final StringJoiner sj = new StringJoiner(" | ");
             sources.forEach(sj::add);
             sb.append("Here are the most common word sequences for")
                     .append(sources.size() == 1 ? " " : " the following combined sources: ")
                     .append(sj)
-                    .append(NEWLINE_CHAR);
+                    .append(NEWLINE_SEPARATOR)
+                    .append(NEWLINE_SEPARATOR)
+                    .append("Sequence                            | Count")
+                    .append(NEWLINE_SEPARATOR)
+                    .append(HEADER_SEPARATOR)
+                    .append(NEWLINE_SEPARATOR);
         }
 
         wordSequenceMap.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .limit(resultCount)
-                .forEach(e -> sb.append(e.getKey()).append(" - ").append(e.getValue()).append(NEWLINE_CHAR));
+                .forEach(e -> {
+                    sb.append(String.format("%-" + SEQUENCE_OUTPUT_PADDING + "s", e.getKey()))
+                            .append(" | ")
+                            .append(e.getValue())
+                            .append(NEWLINE_SEPARATOR);
+                });
 
-        return sb.toString();
+        return sb.append(OUTPUT_SEPARATOR).toString();
     }
 
     /**
-     * Method that resets the tracked map of word sequences to occurrences. Useful for resetting counts between files.
+     * Helper method that prepares the input line for parsing by:
+     *
+     * <ul>
+     *     <li>Replacing unicode punctuation dashes with an ascii dash (-)</li>
+     *     <li>Replacing unicode single quotes with an ascii single quote</li>
+     *     <li>Setting the entire line to lowercase to facilitate case in-sensitive matching</li>
+     * </ul>
+     *
+     * @param line Line to clean up
+     * @return the line with unicode cleaned up and replaced with ascii alternatives
+     */
+    private String prepareLine(final String line) {
+        String toReturn = line.toLowerCase(Locale.ROOT);
+
+        toReturn = UNICODE_DASH_PATTERN.matcher(toReturn).replaceAll("-");
+        toReturn = UNICODE_SINGLE_QUOTE_PATTERN.matcher(toReturn).replaceAll("'");
+
+        return toReturn;
+    }
+
+    /**
+     * Method that resets the tracked data held by this class instance. Useful for resetting data between processed inputs.
      */
     public void reset() {
         wordSequenceMap.clear();
