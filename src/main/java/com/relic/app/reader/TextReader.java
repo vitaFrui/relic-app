@@ -12,7 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Handles reading the provided input and parsing out the most common word sequences from them. Consequential inputs are
+ * Handles reading the provided input and parsing out the most common word sequences from them. Sequential inputs are
  * considered in aggregate unless {@link #reset()} is called.
  */
 public class TextReader {

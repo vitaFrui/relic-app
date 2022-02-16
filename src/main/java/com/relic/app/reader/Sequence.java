@@ -56,7 +56,7 @@ public class Sequence<T> {
             return Optional.empty();
         }
 
-        return Optional.of(sequenceList);
+        return Optional.of(new ArrayList<>(sequenceList));
     }
 
     /**
